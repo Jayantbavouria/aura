@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import{FaGithub,FaGoogle } from "react-icons/fa";
+import Link from "next/link";
 import { OctagonAlertIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -23,13 +24,14 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 
+
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1, { message: "Password is required" }),
 });
 
 export default function SignInView() {
-  const router = useRouter();
+  const router=useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -49,6 +51,7 @@ export default function SignInView() {
       {
         email: data.email,
         password: data.password,
+        callbackURL:"/",
       },
       {
         onSuccess: () => {
@@ -56,14 +59,14 @@ export default function SignInView() {
           router.push("/");
         },
         onError: ({ error }) => {
-          console.error("Signin error response:", error);
-
+          console.error("Signin error response: ", error);
+          
           const message =
-            error?.error?.message ||
-            error?.message ||
-            (error?.response?.data?.message as string) ||
-            "An unexpected error occurred.";
-
+          error?.error?.message ||
+          error?.message ||
+          (error?.response?.data?.message as string) ||
+          "An unexpected error occurred.";
+          
           setError(message);
           setPending(false);
         },
@@ -71,6 +74,33 @@ export default function SignInView() {
     );
   };
 
+     const onSocial = (provider: "github"| "google") => {
+      setError(null);
+      setPending(true);
+  
+      authClient.signIn.social(
+        {
+          provider:provider,
+          callbackURL:"/",
+        },
+        {
+          onSuccess: () => {
+            setPending(false);
+          },
+         onError: ({ error }) => {
+                  console.error("Signup error response:", error);  // <-- log full error for debugging
+                  const message =
+                      error?.error?.message || 
+                      error?.message || 
+                      (error?.response?.data?.message as string) || 
+                      "An unexpected error occurred.";
+                          setError(message);
+                          setPending(false);
+          },
+  
+        }
+      );
+    };
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden p-0">
@@ -133,11 +163,15 @@ export default function SignInView() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button disabled={pending} variant="outline" type="button" className="w-full">
-                    Google
+                  <Button disabled={pending}
+                   onClick={()=>onSocial("google")}
+                  variant="outline" type="button" className="w-full">
+                    <FaGoogle/>
                   </Button>
-                  <Button disabled={pending} variant="outline" type="button" className="w-full">
-                    Github
+                  <Button disabled={pending}
+                    onClick={()=>onSocial("github")}
+                    variant="outline" type="button" className="w-full">
+                    <FaGithub/>
                   </Button>
                 </div>
 

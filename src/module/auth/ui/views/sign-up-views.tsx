@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import{FaGithub,FaGoogle } from "react-icons/fa";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { OctagonAlertIcon } from "lucide-react";
 
@@ -22,10 +23,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+
 const formSchema = z
   .object({
     name: z.string().min(1, { message: "Name is required" }),
-    email: z.string().email(),
+    email: z.email(),
     password: z.string().min(1, { message: "Password is required" }),
     confirmPassword: z.string().min(1, { message: "Password is required" }),
   })
@@ -35,7 +37,7 @@ const formSchema = z
   });
 
 export default function SignUpView() {
-  const router = useRouter();
+  const router=useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -58,11 +60,39 @@ export default function SignUpView() {
         name: data.name,
         email: data.email,
         password: data.password,
+        callbackURL:"/",
       },
       {
         onSuccess: () => {
           setPending(false);
           router.push("/");
+        },
+       onError: ({ error }) => {
+                console.error("Signup error response:", error);  // <-- log full error for debugging
+                const message =
+                    error?.error?.message || 
+                    error?.message || 
+                    (error?.response?.data?.message as string) || 
+                    "An unexpected error occurred.";
+                        setError(message);
+                        setPending(false);
+        },
+
+      }
+    );
+  };
+   const onSocial = (provider: "github"| "google") => {
+    setError(null);
+    setPending(true);
+
+    authClient.signIn.social(
+      {
+        provider:provider,
+        callbackURL:"/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
         },
        onError: ({ error }) => {
                 console.error("Signup error response:", error);  // <-- log full error for debugging
@@ -189,11 +219,16 @@ export default function SignUpView() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button disabled={pending} variant="outline" type="button" className="w-full">
-                    Google
+                  <Button disabled={pending}
+                  onClick={()=>onSocial("google")
+                            }
+                  variant="outline" type="button" className="w-full">
+                    <FaGoogle/>
                   </Button>
-                  <Button disabled={pending} variant="outline" type="button" className="w-full">
-                    Github
+                  <Button disabled={pending} 
+                  onClick={()=>onSocial("github")}
+                  variant="outline" type="button" className="w-full">
+                    <FaGithub/>
                   </Button>
                 </div>
 
