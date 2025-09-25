@@ -43,8 +43,8 @@ export const ResponsiveDialog = ({
             </Drawer>
         )
     } else {
-        return (
-        <Dialog>
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
@@ -53,7 +53,7 @@ export const ResponsiveDialog = ({
                 {children}
             </DialogContent>
         </Dialog>
-        );
-    
-    };
+    );
+}
+
  }
